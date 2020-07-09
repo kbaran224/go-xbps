@@ -22,13 +22,16 @@ func main() {
 
 	t, _ = template.New("").Parse(tmpl)
 
-	app := tview.NewApplication()
+	app := tview.NewApplication().
+		SetRoot(grid, true).
+		EnableMouse(true)
 
 	pkgInfo = tview.NewTextView().
 		SetWrap(false).
 		SetDynamicColors(true)
 
-	search = tview.NewInputField().SetPlaceholder("Search...").
+	search = tview.NewInputField().
+		SetPlaceholder("Search...").
 		SetDoneFunc(func(key tcell.Key) {
 			pkgSearch()
 		})
@@ -41,7 +44,7 @@ func main() {
 	grid = newGrid()
 	initGrid(grid)
 
-	if err := app.SetRoot(grid, true).EnableMouse(true).Run(); err != nil {
+	if err := app.Run(); err != nil {
 		panic(err)
 	}
 
