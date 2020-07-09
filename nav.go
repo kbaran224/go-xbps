@@ -34,7 +34,7 @@ func main() {
 	grid.AddItem(menu, 1, 0, 1, 1, 0, 100, true)
 	grid.AddItem(pkgInfo, 1, 1, 1, 1, 0, 100, false)
 
-	if err := app.SetRoot(grid, true).Run(); err != nil {
+	if err := app.SetRoot(grid, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
 
