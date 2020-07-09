@@ -5,11 +5,18 @@ import (
 	"fmt"
 	"text/template"
 
+	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
 )
 
+var grid *tview.Grid
+
 var pkgInfo *tview.TextView
+var pkgList *tview.List
+var search *tview.InputField
+
 var t *template.Template
+var title *tview.TextView
 
 func main() {
 
@@ -17,26 +24,71 @@ func main() {
 
 	app := tview.NewApplication()
 
-	pkgs, _ := query("")
-	menu := newList(pkgs)
-
 	pkgInfo = tview.NewTextView().
 		SetWrap(false).
 		SetDynamicColors(true)
 
-	search := newPrimitive("Search", true)
-	title := newPrimitive("Title", true)
+	search = tview.NewInputField().SetPlaceholder("Search...").
+		SetDoneFunc(func(key tcell.Key) {
+			pkgSearch()
+		})
 
-	grid := newGrid()
-	grid.AddItem(search, 0, 0, 1, 1, 0, 100, false)
-	grid.AddItem(title, 0, 1, 1, 1, 0, 100, false)
+	title = tview.NewTextView().
+		SetText("Package explorer").
+		SetTextAlign(tview.AlignCenter)
 
-	grid.AddItem(menu, 1, 0, 1, 1, 0, 100, true)
-	grid.AddItem(pkgInfo, 1, 1, 1, 1, 0, 100, false)
+	initList(pkgList)
+	grid = newGrid()
+	initGrid(grid)
 
 	if err := app.SetRoot(grid, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
+
+}
+
+func initList(list *tview.List) {
+	pkgs, _ := query("")
+	pkgList = newList(pkgs)
+
+}
+
+func initGrid(grid *tview.Grid) {
+	grid.Clear()
+	grid.AddItem(search, 0, 0, 1, 1, 0, 100, false)
+	grid.AddItem(title, 0, 1, 1, 1, 0, 100, false)
+
+	grid.AddItem(pkgList, 1, 0, 1, 1, 0, 100, true)
+	grid.AddItem(pkgInfo, 1, 1, 1, 1, 0, 100, false)
+}
+
+func pkgSearch() {
+	query := search.GetText()
+
+	ind := pkgList.FindItems(query, query, false, false)
+
+	if query == "" || query == "*" {
+		initList(pkgList)
+		return
+	}
+
+	if len(ind) == 0 {
+		return
+	}
+
+	var foundPkgs []string
+	for _, i := range ind {
+
+		name, _ := pkgList.GetItemText(i)
+		foundPkgs = append(foundPkgs, name)
+
+	}
+	newPkgList := newList(foundPkgs)
+	pkgList = newPkgList
+
+	initGrid(grid)
+	pkgInfo.Clear()
+	fmt.Fprint(pkgInfo, "Found ", newPkgList.GetItemCount())
 
 }
 
