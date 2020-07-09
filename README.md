@@ -1,3 +1,3 @@
 # go-xbps
 
-## Wrapper for xbps packet manager written in Go.
+## Wrapper for xbps package manager written in Go.
