@@ -1,4 +1,4 @@
-package main
+package xbps
 
 import (
 	"errors"
@@ -11,7 +11,8 @@ import (
 	"strings"
 )
 
-type pkg struct {
+// Pkg data struct
+type Pkg struct {
 	Architecture  string
 	BuildDate     string
 	Sha256        string
@@ -29,7 +30,8 @@ type pkg struct {
 	SourceRev     string
 }
 
-var pkgRegex = [...]string{
+// Regular expressions to filter xbps-query output
+var PkgRegex = [...]string{
 	`architecture: (\S*)\n`,
 	`build-date: (\d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z]{3})\n`,
 	`filename-sha256: ([a-z\d]{0,64})\n`,
@@ -47,23 +49,25 @@ var pkgRegex = [...]string{
 	`source-revisions: (.*)`,
 }
 
+// list of already compiled regexps
 var cmpPkgRegex []*regexp.Regexp
 
+// compile regexps on import
 func init() {
-	for _, reg := range pkgRegex {
+	for _, reg := range PkgRegex {
 		r, _ := regexp.Compile(reg)
 		cmpPkgRegex = append(cmpPkgRegex, r)
 	}
 }
 
 // Install package with xbps
-func (p *pkg) install() error {
+func (p *Pkg) Install() error {
 	fmt.Printf("Installing pkg: %+v\n", p.PkgName)
 	return nil
 }
 
 // Query to find suitable packages with xbps
-func query(name string) ([]string, error) {
+func Query(name string) ([]string, error) {
 	out, err := exec.Command("xrs", name).Output()
 	if err != nil {
 		log.Fatal(err)
@@ -89,13 +93,13 @@ func query(name string) ([]string, error) {
 }
 
 // Info gets package information from xbps
-func info(name string) (pkg, error) {
+func Info(name string) (Pkg, error) {
 	out, err := exec.Command("xbps-query", "-RS", name).Output()
 	if err != nil {
-		return pkg{}, err
+		return Pkg{}, err
 	}
 
-	var p pkg
+	var p Pkg
 
 	values := reflect.ValueOf(&p).Elem()
 
@@ -113,7 +117,6 @@ func info(name string) (pkg, error) {
 
 		switch value.Kind() {
 		case reflect.String:
-			v := strings.ReplaceAll(v, "   ", "")
 			value.SetString(v)
 		case reflect.Slice:
 			p := parseToList(v)
@@ -126,7 +129,7 @@ func info(name string) (pkg, error) {
 		default:
 			err := errors.New("Type not known")
 			log.Fatal(err)
-			return pkg{}, err
+			return Pkg{}, err
 		}
 	}
 
@@ -141,7 +144,7 @@ func parseToList(s string) []string {
 
 }
 
-const tmpl = `=============================
+const Tmpl = `=============================
     Package {{ .PkgName }}
 =============================
        Version: {{ .PkgVersion}}		
