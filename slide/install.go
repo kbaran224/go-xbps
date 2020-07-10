@@ -19,6 +19,7 @@ var ph = tview.NewTextView()
 
 var t *template.Template
 
+// Install searches and installs pkgs from a list
 func Install(nextSlide func()) (title string, content tview.Primitive) {
 
 	t, _ = template.New("").Parse(xbps.Tmpl)
@@ -46,12 +47,14 @@ func Install(nextSlide func()) (title string, content tview.Primitive) {
 
 }
 
+// init a list with all packages
 func initList(list *tview.List) {
 	pkgs, _ := xbps.Query("")
 	pkgList = newList(pkgs)
 
 }
 
+// init (or reinit) whole grid
 func initGrid(grid *tview.Grid) {
 	grid.Clear()
 	grid.AddItem(search, 0, 0, 1, 1, 0, 100, false)
@@ -61,6 +64,7 @@ func initGrid(grid *tview.Grid) {
 	grid.AddItem(pkgInfo, 1, 1, 1, 1, 0, 100, false)
 }
 
+// search for pkg with input field
 func pkgSearch(key tcell.Key) {
 
 	switch key {
@@ -71,6 +75,7 @@ func pkgSearch(key tcell.Key) {
 
 		ind := pkgList.FindItems(query, query, false, false)
 
+		// show every pkg if none is searched
 		if query == "" || query == "*" {
 			initList(pkgList)
 			ph.SetText(fmt.Sprintf("%d packages", pkgList.GetItemCount()))
@@ -90,6 +95,8 @@ func pkgSearch(key tcell.Key) {
 			foundPkgs = append(foundPkgs, name)
 
 		}
+
+		// reinit whole grid with found pkgs
 		newPkgList := newList(foundPkgs)
 		pkgList = newPkgList
 
@@ -100,24 +107,7 @@ func pkgSearch(key tcell.Key) {
 	}
 }
 
-func newGrid() *tview.Grid {
-	return tview.NewGrid().
-		SetRows(1, 0).
-		SetColumns(30, 0).
-		SetBorders(true)
-}
-
-func newPrimitive(text string, align bool) tview.Primitive {
-	prim := tview.NewTextView().
-		SetText(text)
-
-	if align {
-		prim.SetTextAlign(tview.AlignCenter)
-
-	}
-	return prim
-}
-
+// create a list for given pkgs
 func newList(text []string) *tview.List {
 	list := tview.NewList()
 
@@ -129,6 +119,7 @@ func newList(text []string) *tview.List {
 	return list
 }
 
+// create pkg info for given pkg using template
 func newInfo(pkgName string) func() {
 	return func() {
 		pkg, _ := xbps.Info(pkgName)

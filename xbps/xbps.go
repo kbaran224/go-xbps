@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// Pkg data struct
 type Pkg struct {
 	Architecture  string
 	BuildDate     string
@@ -29,6 +30,7 @@ type Pkg struct {
 	SourceRev     string
 }
 
+// Regular expressions to filter xbps-query output
 var PkgRegex = [...]string{
 	`architecture: (\S*)\n`,
 	`build-date: (\d{4}-\d{2}-\d{2} \d{2}:\d{2} [A-Za-z]{3})\n`,
@@ -47,8 +49,10 @@ var PkgRegex = [...]string{
 	`source-revisions: (.*)`,
 }
 
+// list of already compiled regexps
 var cmpPkgRegex []*regexp.Regexp
 
+// compile regexps on import
 func init() {
 	for _, reg := range PkgRegex {
 		r, _ := regexp.Compile(reg)
@@ -113,7 +117,6 @@ func Info(name string) (Pkg, error) {
 
 		switch value.Kind() {
 		case reflect.String:
-			v := strings.ReplaceAll(v, "   ", "")
 			value.SetString(v)
 		case reflect.Slice:
 			p := parseToList(v)
