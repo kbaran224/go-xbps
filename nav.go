@@ -22,9 +22,7 @@ func main() {
 
 	t, _ = template.New("").Parse(tmpl)
 
-	app := tview.NewApplication().
-		SetRoot(grid, true).
-		EnableMouse(true)
+	app := tview.NewApplication()
 
 	pkgInfo = tview.NewTextView().
 		SetWrap(false).
@@ -44,7 +42,7 @@ func main() {
 	grid = newGrid()
 	initGrid(grid)
 
-	if err := app.Run(); err != nil {
+	if err := app.SetRoot(grid, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}
 
@@ -72,6 +70,7 @@ func pkgSearch() {
 
 	if query == "" || query == "*" {
 		initList(pkgList)
+		initGrid(grid)
 		return
 	}
 
